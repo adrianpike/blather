@@ -33,7 +33,12 @@ describe Blather::Stream::Client do
 
   it 'can be started' do
     client = mock()
-    params = [client, 'n@d/r', 'pass', 'host', 1234]
+    params = {
+     :jid => 'n@d/r', 
+     :password => 'pass', 
+     :host => 'host', 
+     :port => 1234
+    }
     EM.expects(:connect).with do |*parms|
       parms[0].must_equal 'host'
       parms[1].must_equal 1234
@@ -42,7 +47,7 @@ describe Blather::Stream::Client do
       parms[4].must_equal Blather::JID.new('n@d/r')
     end
 
-    Blather::Stream::Client.start *params
+    Blather::Stream::Client.start client, params
   end
 
   it 'attempts to find the SRV record if a host is not provided' do
@@ -62,7 +67,10 @@ describe Blather::Stream::Client do
       parms[4].must_equal Blather::JID.new('n@d/r')
     end
 
-    Blather::Stream::Client.start client, 'n@d/r', 'pass'
+    Blather::Stream::Client.start client, {
+      :jid => 'n@d/r',
+      :password => 'pass'
+    }
   end
 
   it 'will attempt as many connections as it takes' do
@@ -79,7 +87,10 @@ describe Blather::Stream::Client do
       parms[5].must_equal 'pass'
       parms[4].must_equal Blather::JID.new('n@d/r')
     end
-    Blather::Stream::Client.start client, 'n@d/r', 'pass'
+    Blather::Stream::Client.start client, {
+      :jid => 'n@d/r',
+      :password => 'pass'
+    }
   end
 
   it 'will not attempt to connect more often than necessary' do
@@ -95,7 +106,7 @@ describe Blather::Stream::Client do
       parms[5].must_equal 'pass'
       parms[4].must_equal Blather::JID.new('n@d/r')
     end
-    Blather::Stream::Client.start client, 'n@d/r', 'pass'
+    Blather::Stream::Client.start client, {:jid => 'n@d/r', :password => 'pass'}
   end
 
   it 'can figure out the host to use based on the jid' do
@@ -110,7 +121,7 @@ describe Blather::Stream::Client do
       parms[4].must_equal Blather::JID.new('n@d/r')
     end
 
-    Blather::Stream::Client.start client, 'n@d/r', 'pass'
+    Blather::Stream::Client.start client, {:jid => 'n@d/r', :password => 'pass'}
   end
 
   it 'raises a NoConnection exception if the connection is unbound before it can be completed' do
@@ -118,7 +129,12 @@ describe Blather::Stream::Client do
       EventMachine::run {
         EM.add_timer(0.5) { EM.stop if EM.reactor_running? }
 
-        Blather::Stream::Client.start @client, @jid || Blather::JID.new('n@d/r'), 'pass', '127.0.0.1', 50000 - rand(1000)
+        Blather::Stream::Client.start @client, {
+          :jid => @jid || Blather::JID.new('n@d/r'),
+          :password =>  'pass', 
+          :host => '127.0.0.1', 
+          :port => 50000 - rand(1000)
+        }
       }
     end.must_raise Blather::Stream::ConnectionFailed
   end

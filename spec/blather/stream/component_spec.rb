@@ -28,7 +28,12 @@ describe Blather::Stream::Component do
 
   it 'can be started' do
     client = mock()
-    params = [client, 'comp.id', 'secret', 'host', 1234]
+    params = {
+     :jid => 'comp.id', 
+     :password => 'secret', 
+     :host => 'host', 
+     :port => 1234
+    }
     EM.expects(:connect).with do |*parms|
       parms[0] == 'host'    &&
       parms[1] == 1234      &&
@@ -36,7 +41,7 @@ describe Blather::Stream::Component do
       parms[4] == 'comp.id'
     end
 
-    Blather::Stream::Component.start *params
+    Blather::Stream::Component.start client, params
   end
 
   it 'shakes hands with the server' do
@@ -63,7 +68,12 @@ describe Blather::Stream::Component do
       EventMachine::run {
         EM.add_timer(0.5) { EM.stop if EM.reactor_running? }
 
-        Blather::Stream::Component.start @client, @jid || Blather::JID.new('n@d/r'), 'pass', '127.0.0.1', 50000 - rand(1000)
+        Blather::Stream::Component.start @client, {
+          :jid => @jid || Blather::JID.new('n@d/r'),
+          :password =>  'pass', 
+          :host => '127.0.0.1', 
+          :port => 50000 - rand(1000)
+        }
       }
     end.must_raise Blather::Stream::ConnectionFailed
   end

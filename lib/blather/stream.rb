@@ -72,14 +72,14 @@ module Blather
     # @param [String, nil] certs the trusted cert store in pem format to verify 
     # communication with the server is trusted.
     # @param [Fixnum, nil] connect_timeout the number of seconds for which to wait for a successful connection
-    def self.start(client, jid, pass, host = nil, port = nil, certs_directory = nil, connect_timeout = nil)
-      jid = JID.new jid
-      port ||= 5222
-      if certs_directory
-        @@store = CertStore.new(certs_directory)
+    def self.start(client, opts) #jid, pass, host = nil, port = nil, certs_directory = nil, connect_timeout = nil)
+      jid = JID.new opts[:jid]
+      port = opts[:port] || 5222
+      if opts[:certs_directory]
+        @@store = CertStore.new(opts[:certs_directory])
       end
-      if host
-        connect host, port, self, client, jid, pass, connect_timeout
+      if opts[:host]
+        connect opts[:host], port, self, client, jid, opts[:password], opts[:connect_timeout] # TODO: Use the opts hash here too
       else
         require 'resolv'
         srv = []
@@ -91,7 +91,7 @@ module Blather
         end
 
         if srv.empty?
-          connect jid.domain, port, self, client, jid, pass, connect_timeout
+          connect jid.domain, port, self, client, jid, opts[:password], opts[:connect_timeout]
         else
           srv.sort! do |a,b|
             (a.priority != b.priority) ? (a.priority <=> b.priority) :
@@ -99,7 +99,7 @@ module Blather
           end
 
           srv.detect do |r|
-            not connect(r.target.to_s, r.port, self, client, jid, pass, connect_timeout) === false
+            not connect(r.target.to_s, r.port, self, client, jid, opts[:password], opts[:connect_timeout]) === false
           end
         end
       end
@@ -109,7 +109,7 @@ module Blather
     # Stream will raise +NoConnection+ if it receives #unbind before #post_init
     # this catches that and returns false prompting for another attempt
     # @private
-    def self.connect(host, port, conn, client, jid, pass, connect_timeout = nil)
+    def self.connect(host, port, conn, client, jid, pass, connect_timeout = nil) # TODO: use opts hash!
       EM.connect host, port, conn, client, jid, pass, connect_timeout
     rescue NoConnection
       false

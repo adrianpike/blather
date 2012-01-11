@@ -1,3 +1,5 @@
+#active_support/core_ext/class/array
+
 # Require the necessary files
 %w[
   rubygems

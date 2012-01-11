@@ -49,16 +49,15 @@ describe Blather::Client do
   end
 
   it 'starts up a Component connection when setup without a node' do
-    setup = 'pubsub.jabber.local', 'secret'
-    @client.setup *setup
-    Blather::Stream::Component.expects(:start).with @client, *setup + [nil, nil, nil, nil]
+    @client.setup('pubsub.jabber.local', 'secret')
+    Blather::Stream::Component.expects(:start).with @client, {:jid => 'pubsub.jabber.local', :password => 'secret'}
     @client.run
   end
 
   it 'starts up a Client connection when setup with a node' do
     setup = 'test@jabber.local', 'secret'
     @client.setup *setup
-    Blather::Stream::Client.expects(:start).with @client, *setup + [nil, nil, nil, nil]
+    Blather::Stream::Client.expects(:start).with @client, {:jid => 'test@jabber.local', :password => 'secret'}
     @client.run
   end
 

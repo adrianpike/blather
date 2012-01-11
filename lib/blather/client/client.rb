@@ -45,8 +45,9 @@ module Blather
     # @param [Fixnum, String] port the port to connect to.
     #
     # @return [Blather::Client]
-    def self.setup(jid, password, host = nil, port = nil, certs = nil, connect_timeout = nil)
-      self.new.setup(jid, password, host, port, certs, connect_timeout)
+    def self.setup(jid, password, *args)
+      # , host = nil, port = nil, certs = nil, connect_timeout = nil
+      self.new.setup(jid, password, args)
     end
 
     def initialize  # @private
@@ -92,8 +93,8 @@ module Blather
     # Blather::Stream::Client otherwise Blather::Stream::Component
     def run
       raise 'not setup!' unless setup?
-      klass = @setup[0].node ? Blather::Stream::Client : Blather::Stream::Component
-      klass.start self, *@setup
+      klass = @setup[:jid].node ? Blather::Stream::Client : Blather::Stream::Component
+      klass.start(self, @setup)
     end
     alias_method :connect, :run
 
@@ -190,17 +191,16 @@ module Blather
 
     # @private
     def setup?
-      @setup.is_a? Array
+      @setup.is_a? Hash
     end
 
     # @private
-    def setup(jid, password, host = nil, port = nil, certs = nil, connect_timeout = nil)
+    # , host = nil, port = nil, certs = nil, connect_timeout = nil)
+    def setup(jid, password, *opts)
       @jid = JID.new(jid)
-      @setup = [@jid, password]
-      @setup << host
-      @setup << port
-      @setup << certs
-      @setup << connect_timeout
+      @setup = opts.extract_options!
+      @setup[:jid] = @jid
+      @setup[:password] = password
       self
     end
 
